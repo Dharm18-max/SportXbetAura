@@ -251,5 +251,6 @@ def odds_analysis():
     return render_template('odds_analysis.html')
 
 
+
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)
