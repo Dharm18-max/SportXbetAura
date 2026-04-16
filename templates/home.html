@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}SportXBetAura - Premium Sports Betting Platform{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <h1>💰 SportXBetAura</h1>
+        <p>Master Your Bets with AI-Powered Odds Analysis</p>
+        <div class="hero-buttons">
+            <a href="/events" class="btn btn-primary">Explore Events</a>
+            <a href="/betting" class="btn btn-secondary">Place a Bet</a>
+        </div>
+    </div>
+</section>
+
+<section class="features">
+    <div class="feature-grid">
+        <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3>Best Odds Analysis</h3>
+            <p>Priority Queue algorithm finds the best odds across all events in O(n log n)</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">🎲</div>
+            <h3>Smart Parlay Calculator</h3>
+            <p>Dynamic Programming calculates multi-bet parlays with optimal combinations</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">⏮️</div>
+            <h3>Instant Undo</h3>
+            <p>Stack-based betting history allows O(1) undo of your last bet</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">💰</div>
+            <h3>Real-time Updates</h3>
+            <p>Hash Maps provide O(1) lookups for instant account balance updates</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">📈</div>
+            <h3>Advanced Analytics</h3>
+            <p>Comprehensive statistics and performance tracking for all your bets</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">🔒</div>
+            <h3>Secure System</h3>
+            <p>Robust error handling and validation for all transactions</p>
+        </div>
+    </div>
+</section>
+
+<section class="getting-started">
+    <div class="container">
+        <h2>🚀 Getting Started</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Browse Events</h3>
+                <p>Check available sports events with real-time odds</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>Place Bets</h3>
+                <p>Select your teams and bet amounts</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Analyze Odds</h3>
+                <p>Compare probabilities and find value</p>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <h3>Track History</h3>
+                <p>Monitor your bets and performance</p>
+            </div>
+            <div class="step">
+                <div class="step-number">5</div>
+                <h3>Parlay Builder</h3>
+                <p>Create multi-leg parlay combinations</p>
+            </div>
+            <div class="step">
+                <div class="step-number">6</div>
+                <h3>View Stats</h3>
+                <p>Review comprehensive betting analytics</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta">
+    <h2>Ready to Start Betting?</h2>
+    <p>Explore our platform with advanced DSA algorithms powering your decisions</p>
+    <a href="/events" class="btn btn-large">View All Events</a>
+</section>
+{% endblock %}

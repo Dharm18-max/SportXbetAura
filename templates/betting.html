@@ -1,0 +1,382 @@
+{% extends "base.html" %}
+
+{% block title %}Place Bet - SportXBetAura{% endblock %}
+
+{% block content %}
+<section class="betting-section">
+    <div class="container">
+        <h1>🎲 Place Your Bet</h1>
+
+        <div class="betting-container">
+            <div class="events-sidebar">
+                <h2>Available Events</h2>
+                <div id="eventsListBetting" class="events-list">
+                    <div class="loading">Loading events...</div>
+                </div>
+            </div>
+
+            <div class="betting-form-container">
+                <form id="bettingForm" class="betting-form">
+                    <h2>Bet Details</h2>
+                    
+                    <div class="form-group">
+                        <label>Select Event</label>
+                        <select id="eventSelect" required>
+                            <option value="">Choose an event...</option>
+                        </select>
+                    </div>
+
+                    <div id="selectedEvent" class="selected-event" style="display: none;">
+                        <div class="event-teams">
+                            <div class="team-option">
+                                <input type="radio" name="teamIdx" value="0" id="team0" required>
+                                <label for="team0" id="team0Label"></label>
+                                <span class="odds" id="team0Odds"></span>
+                            </div>
+                            <div class="vs-divider">VS</div>
+                            <div class="team-option">
+                                <input type="radio" name="teamIdx" value="1" id="team1" required>
+                                <label for="team1" id="team1Label"></label>
+                                <span class="odds" id="team1Odds"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Bet Amount ($)</label>
+                        <input type="number" id="betAmount" placeholder="Enter amount" min="1" max="1000" step="0.01" required>
+                        <div class="balance-info">
+                            <span>Available Balance: </span>
+                            <span id="availableBalance">$1,000.00</span>
+                        </div>
+                    </div>
+
+                    <div class="bet-preview">
+                        <div class="preview-item">
+                            <span>Bet Amount:</span>
+                            <span id="previewAmount">$0.00</span>
+                        </div>
+                        <div class="preview-item">
+                            <span>Odds:</span>
+                            <span id="previewOdds">-</span>
+                        </div>
+                        <div class="preview-item highlight">
+                            <span>Potential Win:</span>
+                            <span id="previewWin">$0.00</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-large">Place Bet</button>
+                </form>
+
+                <div id="betResult" class="bet-result"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .betting-container {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 30px;
+        margin-top: 30px;
+    }
+
+    .events-sidebar {
+        background: #f9f9f9;
+        border-radius: 12px;
+        padding: 20px;
+        height: fit-content;
+    }
+
+    .events-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .event-item {
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .event-item:hover {
+        border-color: #6366f1;
+        background: white;
+    }
+
+    .event-item.active {
+        border-color: #6366f1;
+        background: #f0f0ff;
+    }
+
+    .betting-form {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus, .form-group select:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .balance-info {
+        margin-top: 8px;
+        font-size: 13px;
+        color: #666;
+    }
+
+    .selected-event {
+        background: #f5f5f5;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+    }
+
+    .event-teams {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .team-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .team-option input {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+
+    .team-option label {
+        margin: 8px 0;
+        font-weight: 600;
+    }
+
+    .team-option .odds {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-weight: bold;
+    }
+
+    .vs-divider {
+        font-weight: bold;
+        font-size: 18px;
+        color: #999;
+    }
+
+    .bet-preview {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+    }
+
+    .preview-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .preview-item.highlight {
+        border-bottom: none;
+        padding-top: 12px;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+        .betting-container {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let events = [];
+    let selectedEvent = null;
+
+    async function loadEventsForBetting() {
+        try {
+            const response = await fetch('/api/events');
+            events = await response.json();
+            
+            const eventsListDiv = document.getElementById('eventsListBetting');
+            const eventSelect = document.getElementById('eventSelect');
+            
+            eventSelect.innerHTML = '<option value="">Choose an event...</option>';
+            
+            eventsListDiv.innerHTML = events.map((event, index) => `
+                <div class="event-item" data-event-id="${event.id}">
+                    <div style="font-weight: bold;">${event.sport}</div>
+                    <div>${event.team1} vs ${event.team2}</div>
+                    <div style="font-size: 12px; color: #666;">📅 ${event.date}</div>
+                </div>
+            `).join('');
+            
+            // Add click listeners to sidebar events
+            document.querySelectorAll('.event-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const eventId = item.getAttribute('data-event-id');
+                    selectEvent(eventId);
+                });
+            });
+            
+            events.forEach((event) => {
+                const option = document.createElement('option');
+                option.value = event.id;
+                option.textContent = `${event.sport}: ${event.team1} vs ${event.team2}`;
+                eventSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error loading events:', error);
+            document.getElementById('eventsListBetting').innerHTML = '<p style="color: red;">❌ Failed to load events</p>';
+        }
+    }
+
+    function selectEvent(eventId) {
+        selectedEvent = events.find(e => e.id === eventId);
+        
+        if (selectedEvent) {
+            // Update form
+            document.getElementById('eventSelect').value = eventId;
+            
+            // Highlight active event in sidebar
+            document.querySelectorAll('.event-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-event-id') === eventId) {
+                    item.classList.add('active');
+                }
+            });
+            
+            // Show event selection
+            document.getElementById('selectedEvent').style.display = 'block';
+            
+            // Update team labels and odds
+            document.getElementById('team0Label').textContent = selectedEvent.team1;
+            document.getElementById('team0Odds').textContent = selectedEvent.odds1;
+            document.getElementById('team1Label').textContent = selectedEvent.team2;
+            document.getElementById('team1Odds').textContent = selectedEvent.odds2;
+            
+            // Clear previous selection
+            document.getElementById('team0').checked = false;
+            document.getElementById('team1').checked = false;
+            
+            updateBetPreview();
+        }
+    }
+
+    document.getElementById('eventSelect').addEventListener('change', (e) => {
+        if (e.target.value) {
+            selectEvent(e.target.value);
+        } else {
+            document.getElementById('selectedEvent').style.display = 'none';
+            document.querySelectorAll('.event-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            selectedEvent = null;
+        }
+    });
+
+    function updateBetPreview() {
+        const amount = parseFloat(document.getElementById('betAmount').value) || 0;
+        let odds = 0;
+        
+        if (document.getElementById('team0').checked) {
+            odds = selectedEvent.odds1;
+        } else if (document.getElementById('team1').checked) {
+            odds = selectedEvent.odds2;
+        }
+        
+        document.getElementById('previewAmount').textContent = `$${amount.toFixed(2)}`;
+        document.getElementById('previewOdds').textContent = odds > 0 ? odds : '-';
+        document.getElementById('previewWin').textContent = odds > 0 ? `$${(amount * odds).toFixed(2)}` : '$0.00';
+    }
+
+    document.getElementById('betAmount').addEventListener('input', updateBetPreview);
+    document.getElementById('team0').addEventListener('change', updateBetPreview);
+    document.getElementById('team1').addEventListener('change', updateBetPreview);
+
+    document.getElementById('bettingForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!selectedEvent) {
+            showNotification('❌ Please select an event', 'error');
+            return;
+        }
+        
+        const amount = parseFloat(document.getElementById('betAmount').value);
+        const teamIdx = document.querySelector('input[name="teamIdx"]:checked').value;
+        
+        try {
+            const response = await fetch('/api/place-bet', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    event_id: selectedEvent.id,
+                    amount: amount,
+                    team_idx: teamIdx
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showNotification(`✅ ${result.message}`, 'success');
+                document.getElementById('bettingForm').reset();
+                document.getElementById('selectedEvent').style.display = 'none';
+                document.getElementById('availableBalance').textContent = `$${result.balance.toFixed(2)}`;
+                updateBetPreview();
+            } else {
+                showNotification(`❌ ${result.message}`, 'error');
+            }
+        } catch (error) {
+            console.error('Error placing bet:', error);
+            showNotification('❌ Error placing bet', 'error');
+        }
+    });
+
+    loadEventsForBetting();
+    setInterval(loadEventsForBetting, 5000);
+</script>
+{% endblock %}

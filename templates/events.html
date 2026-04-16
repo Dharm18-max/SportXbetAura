@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}All Events - SportXBetAura{% endblock %}
+
+{% block content %}
+<section class="events-section">
+    <div class="container">
+        <h1>📅 All Sports Events</h1>
+        <p class="subtitle">Latest odds and betting opportunities</p>
+
+        <div class="events-filters">
+            <input type="text" id="searchInput" placeholder="Search events..." class="search-box">
+            <select id="sportFilter" class="filter-select">
+                <option value="">All Sports</option>
+                <option value="Basketball">Basketball</option>
+                <option value="Football">Football</option>
+                <option value="Tennis">Tennis</option>
+                <option value="Cricket">Cricket</option>
+                <option value="Baseball">Baseball</option>
+                <option value="Hockey">Hockey</option>
+            </select>
+        </div>
+
+        <div id="eventsContainer" class="events-grid">
+            <div class="loading">Loading events...</div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .events-filters {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
+    
+    .search-box, .filter-select {
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+    
+    .search-box:focus, .filter-select:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+</style>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function loadEvents() {
+        try {
+            const response = await fetch('/api/events');
+            const events = await response.json();
+            
+            const container = document.getElementById('eventsContainer');
+            
+            if (events.length === 0) {
+                container.innerHTML = '<p class="no-events">No events found</p>';
+                return;
+            }
+            
+            container.innerHTML = events.map(event => `
+                <div class="event-card">
+                    <div class="event-header">
+                        <span class="sport-badge">${event.sport}</span>
+                        <span class="date-badge">📅 ${event.date}</span>
+                    </div>
+                    <div class="event-content">
+                        <div class="teams-container">
+                            <div class="team">
+                                <div class="team-name">${event.team1}</div>
+                                <div class="odds" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">${event.odds1}</div>
+                            </div>
+                            <div class="vs">VS</div>
+                            <div class="team">
+                                <div class="team-name">${event.team2}</div>
+                                <div class="odds" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">${event.odds2}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="event-footer">
+                        <span class="stat">🎲 ${event.bets} bets</span>
+                        <span class="stat">💰 $${event.wagered}</span>
+                        <a href="/betting?event=${event.id}" class="btn-small">Bet Now</a>
+                    </div>
+                </div>
+            `).join('');
+            
+            attachFilterListeners(events);
+        } catch (error) {
+            console.error('Error loading events:', error);
+        }
+    }
+    
+    function attachFilterListeners(allEvents) {
+        const searchInput = document.getElementById('searchInput');
+        const sportFilter = document.getElementById('sportFilter');
+        
+        function filterEvents() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedSport = sportFilter.value;
+            
+            const filtered = allEvents.filter(event => {
+                const matchesSearch = 
+                    event.team1.toLowerCase().includes(searchTerm) || 
+                    event.team2.toLowerCase().includes(searchTerm) || 
+                    event.sport.toLowerCase().includes(searchTerm);
+                
+                const matchesSport = !selectedSport || event.sport === selectedSport;
+                
+                return matchesSearch && matchesSport;
+            });
+            
+            const container = document.getElementById('eventsContainer');
+            if (filtered.length === 0) {
+                container.innerHTML = '<p class="no-events">No matching events found</p>';
+                return;
+            }
+            
+            container.innerHTML = filtered.map(event => `
+                <div class="event-card">
+                    <div class="event-header">
+                        <span class="sport-badge">${event.sport}</span>
+                        <span class="date-badge">📅 ${event.date}</span>
+                    </div>
+                    <div class="event-content">
+                        <div class="teams-container">
+                            <div class="team">
+                                <div class="team-name">${event.team1}</div>
+                                <div class="odds" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">${event.odds1}</div>
+                            </div>
+                            <div class="vs">VS</div>
+                            <div class="team">
+                                <div class="team-name">${event.team2}</div>
+                                <div class="odds" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">${event.odds2}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="event-footer">
+                        <span class="stat">🎲 ${event.bets} bets</span>
+                        <span class="stat">💰 $${event.wagered}</span>
+                        <a href="/betting?event=${event.id}" class="btn-small">Bet Now</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        searchInput.addEventListener('input', filterEvents);
+        sportFilter.addEventListener('change', filterEvents);
+    }
+    
+    loadEvents();
+    setInterval(loadEvents, 5000); // Refresh every 5 seconds
+</script>
+{% endblock %}

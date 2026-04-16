@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - SportXBetAura{% endblock %}
+
+{% block content %}
+<section class="dashboard">
+    <div class="container">
+        <h1>📊 Dashboard</h1>
+        
+        <div class="stats-grid">
+            <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="stat-icon">💰</div>
+                <div class="stat-content">
+                    <div class="stat-label">Account Balance</div>
+                    <div class="stat-value" id="balance">$1,000.00</div>
+                </div>
+            </div>
+            
+            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="stat-icon">🎲</div>
+                <div class="stat-content">
+                    <div class="stat-label">Total Bets</div>
+                    <div class="stat-value" id="totalBets">0</div>
+                </div>
+            </div>
+            
+            <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="stat-icon">📈</div>
+                <div class="stat-content">
+                    <div class="stat-label">Total Wagered</div>
+                    <div class="stat-value" id="totalWagered">$0.00</div>
+                </div>
+            </div>
+            
+            <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-content">
+                    <div class="stat-label">Potential Winnings</div>
+                    <div class="stat-value" id="potential">$0.00</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <h2>Quick Actions</h2>
+                <div class="quick-actions">
+                    <a href="/events" class="action-btn">
+                        <span class="icon">📅</span>
+                        <span>View Events</span>
+                    </a>
+                    <a href="/betting" class="action-btn">
+                        <span class="icon">🎲</span>
+                        <span>Place Bet</span>
+                    </a>
+                    <a href="/odds-analysis" class="action-btn">
+                        <span class="icon">📊</span>
+                        <span>Best Odds</span>
+                    </a>
+                    <a href="/parlay" class="action-btn">
+                        <span class="icon">🎯</span>
+                        <span>Build Parlay</span>
+                    </a>
+                    <a href="/history" class="action-btn">
+                        <span class="icon">📜</span>
+                        <span>View History</span>
+                    </a>
+                    <button class="action-btn" onclick="undoLastBet()">
+                        <span class="icon">⏮️</span>
+                        <span>Undo Bet</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="dashboard-card">
+                <h2>Recent Statistics</h2>
+                <div class="stats-list">
+                    <div class="stat-item">
+                        <span class="label">Average Odds:</span>
+                        <span class="value" id="avgOdds">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Potential Profit:</span>
+                        <span class="value" id="profit">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">ROI:</span>
+                        <span class="value" id="roi">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-card full-width">
+            <h2>📊 Betting Overview</h2>
+            <canvas id="chartContainer" style="max-height: 300px;"></canvas>
+        </div>
+
+        <div class="dashboard-card full-width">
+            <h2>Recent Bets</h2>
+            <div id="recentBets" class="bets-list">
+                <p class="no-bets">No bets placed yet</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        display: flex;
+        align-items: center;
+        padding: 20px;
+        border-radius: 12px;
+        color: white;
+    }
+    
+    .stat-icon {
+        font-size: 40px;
+        margin-right: 20px;
+    }
+    
+    .stat-label {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+    
+    .stat-value {
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    .action-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #333;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        background: white;
+    }
+
+    .action-btn:hover {
+        border-color: #6366f1;
+        background: #f0f0ff;
+        transform: translateY(-2px);
+    }
+
+    .action-btn .icon {
+        font-size: 24px;
+        margin-bottom: 8px;
+    }
+
+    .stats-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px;
+        background: #f5f5f5;
+        border-radius: 6px;
+    }
+
+    .bets-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .no-bets {
+        text-align: center;
+        color: #999;
+        padding: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let chart;
+
+    async function updateDashboard() {
+        try {
+            const response = await fetch('/api/statistics');
+            const stats = await response.json();
+            
+            // Update stat cards
+            document.getElementById('balance').textContent = `$${stats.balance.toFixed(2)}`;
+            document.getElementById('totalBets').textContent = stats.total_bets;
+            document.getElementById('totalWagered').textContent = `$${stats.total_wagered.toFixed(2)}`;
+            document.getElementById('potential').textContent = `$${stats.total_potential.toFixed(2)}`;
+            document.getElementById('avgOdds').textContent = stats.avg_odds > 0 ? stats.avg_odds.toFixed(2) : '-';
+            
+            const profit = stats.total_potential - stats.total_wagered;
+            document.getElementById('profit').textContent = `$${profit.toFixed(2)}`;
+            
+            const roi = stats.total_wagered > 0 ? ((profit / stats.total_wagered) * 100).toFixed(2) : '0.00';
+            document.getElementById('roi').textContent = `${roi}%`;
+            
+            // Update chart
+            updateChart(stats);
+            
+            // Load recent bets
+            loadRecentBets();
+        } catch (error) {
+            console.error('Error updating dashboard:', error);
+        }
+    }
+
+    function updateChart(stats) {
+        const ctx = document.getElementById('chartContainer');
+        
+        if (chart) {
+            chart.data.datasets[0].data = [
+                stats.total_wagered,
+                stats.total_potential - stats.total_wagered,
+                stats.balance
+            ];
+            chart.update();
+        } else {
+            chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Wagered', 'Potential Profit', 'Remaining Balance'],
+                    datasets: [{
+                        data: [
+                            stats.total_wagered,
+                            stats.total_potential - stats.total_wagered,
+                            stats.balance
+                        ],
+                        backgroundColor: [
+                            'rgba(106, 102, 241, 0.8)',
+                            'rgba(245, 87, 108, 0.8)',
+                            'rgba(16, 185, 129, 0.8)'
+                        ],
+                        borderColor: [
+                            '#6366f1',
+                            '#f55575',
+                            '#10b981'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    async function loadRecentBets() {
+        try {
+            const response = await fetch('/api/history');
+            const bets = await response.json();
+            
+            const container = document.getElementById('recentBets');
+            if (bets.length === 0) {
+                container.innerHTML = '<p class="no-bets">No bets placed yet</p>';
+                return;
+            }
+            
+            container.innerHTML = bets.slice(0, 5).map(bet => `
+                <div class="bet-item">
+                    <div class="bet-info">
+                        <div class="bet-team">${bet.team}</div>
+                        <div class="bet-time">${bet.timestamp}</div>
+                    </div>
+                    <div class="bet-amount">$${bet.amount.toFixed(2)} @ ${bet.odds}</div>
+                    <div class="bet-potential">Win: $${bet.potential_win.toFixed(2)}</div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading recent bets:', error);
+        }
+    }
+
+    async function undoLastBet() {
+        try {
+            const response = await fetch('/api/undo-bet', {
+                method: 'POST'
+            });
+            const result = await response.json();
+            
+            if (result.success) {
+                showNotification('✅ Bet undone successfully!', 'success');
+                updateDashboard();
+            } else {
+                showNotification('❌ ' + result.message, 'error');
+            }
+        } catch (error) {
+            console.error('Error undoing bet:', error);
+        }
+    }
+
+    updateDashboard();
+    setInterval(updateDashboard, 3000);
+</script>
+{% endblock %}

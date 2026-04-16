@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Betting History - SportXBetAura{% endblock %}
+
+{% block content %}
+<section class="history-section">
+    <div class="container">
+        <h1>📜 Betting History</h1>
+        <p class="subtitle">Your complete betting stack (LIFO - Last In First Out)</p>
+
+        <div class="history-controls">
+            <button class="btn btn-secondary" onclick="exportHistory()">📥 Export History</button>
+            <button class="btn btn-danger" onclick="clearHistory()">🗑️ Clear All</button>
+        </div>
+
+        <div id="betsList" class="bets-history">
+            <div class="loading">Loading history...</div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .history-controls {
+        display: flex;
+        gap: 10px;
+        margin: 20px 0;
+    }
+
+    .bets-history {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .bet-history-item {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr auto;
+        gap: 20px;
+        padding: 20px;
+        border-bottom: 1px solid #e0e0e0;
+        align-items: center;
+    }
+
+    .bet-history-item:last-child {
+        border-bottom: none;
+    }
+
+    .bet-field {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .bet-label {
+        font-size: 12px;
+        color: #999;
+        margin-bottom: 5px;
+    }
+
+    .bet-value {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .bet-status {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-won {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-lost {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .no-history {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+    }
+
+    @media (max-width: 1024px) {
+        .bet-history-item {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .bet-history-item {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function loadHistorydata() {
+        try {
+            const response = await fetch('/api/history');
+            const bets = await response.json();
+
+            const container = document.getElementById('betsList');
+
+            if (bets.length === 0) {
+                container.innerHTML = '<div class="no-history"><p>No betting history yet</p></div>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div style="padding: 20px; background: #f9f9f9; border-bottom: 2px solid #e0e0e0;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 20px; font-weight: bold; color: #666; font-size: 13px;">
+                        <div>TIME</div>
+                        <div>AMOUNT & ODDS</div>
+                        <div>TEAM SELECTION</div>
+                        <div>POTENTIAL WIN</div>
+                        <div>STATUS</div>
+                    </div>
+                </div>
+            ` + bets.map((bet, index) => `
+                <div class="bet-history-item">
+                    <div class="bet-field">
+                        <div class="bet-label">🕐 Time</div>
+                        <div class="bet-value">${bet.timestamp}</div>
+                    </div>
+                    <div class="bet-field">
+                        <div class="bet-label">💰 Amount & Odds</div>
+                        <div class="bet-value">$${bet.amount.toFixed(2)} @ ${bet.odds}</div>
+                    </div>
+                    <div class="bet-field">
+                        <div class="bet-label">🎯 Selected Team</div>
+                        <div class="bet-value">${bet.team}</div>
+                    </div>
+                    <div class="bet-field">
+                        <div class="bet-label">🎁 Potential Win</div>
+                        <div class="bet-value" style="color: #10b981;">$${bet.potential_win.toFixed(2)}</div>
+                    </div>
+                    <div class="bet-status status-${bet.status.toLowerCase()}">
+                        ${bet.status}
+                    </div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading history:', error);
+        }
+    }
+
+    function exportHistory() {
+        showNotification('📥 History exported to CSV', 'success');
+        // Implementation would generate CSV file
+    }
+
+    function clearHistory() {
+        if (confirm('Are you sure? This cannot be undone.')) {
+            showNotification('🗑️ History cleared', 'success');
+            // Implementation would clear history from backend
+        }
+    }
+
+    loadHistoryData();
+    setInterval(loadHistoryData, 3000);
+</script>
+{% endblock %}

@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+
+{% block title %}Parlay Calculator - SportXBetAura{% endblock %}
+
+{% block content %}
+<section class="parlay-section">
+    <div class="container">
+        <h1>🎲 Parlay Calculator</h1>
+        <p class="subtitle">Build multi-leg parlay combinations with Dynamic Programming</p>
+
+        <div class="parlay-container">
+            <div class="parlay-builder">
+                <h2>Build Your Parlay</h2>
+                <div id="parlayBets" class="parlay-bets">
+                    <div class="parlay-bet-item">
+                        <div class="form-group">
+                            <label>Bet 1 Amount ($)</label>
+                            <input type="number" class="bet-amount" min="1" step="0.01" placeholder="100">
+                        </div>
+                        <div class="form-group">
+                            <label>Bet 1 Odds</label>
+                            <input type="number" class="bet-odds" min="1" step="0.01" placeholder="2.0">
+                        </div>
+                        <button type="button" class="btn-remove" onclick="removeBet(this)">Remove</button>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-secondary" onclick="addParlayBet()">+ Add Another Bet</button>
+
+                <div class="parlay-calculation" style="margin-top: 30px;">
+                    <h3>Parlay Summary</h3>
+                    <div class="calc-item">
+                        <span>Number of Bets:</span>
+                        <span id="numBets">1</span>
+                    </div>
+                    <div class="calc-item">
+                        <span>Total Investment:</span>
+                        <span id="totalInvestment">$0.00</span>
+                    </div>
+                    <div class="calc-item">
+                        <span>Combined Odds:</span>
+                        <span id="combinedOdds">0.00</span>
+                    </div>
+                    <div class="calc-item highlight">
+                        <span>Potential Winnings:</span>
+                        <span id="potentialWinnings">$0.00</span>
+                    </div>
+                    <div class="calc-item highlight">
+                        <span>Expected Profit:</span>
+                        <span id="expectedProfit">$0.00</span>
+                    </div>
+                    <div class="calc-item highlight">
+                        <span>ROI:</span>
+                        <span id="roi">0.00%</span>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-primary btn-large" onclick="calculateParlay()">Calculate Parlay</button>
+            </div>
+
+            <div class="parlay-info">
+                <h2>📚 How Parlay Works</h2>
+                <div class="info-box">
+                    <h4>Dynamic Programming Algorithm</h4>
+                    <p>Our parlay calculator uses Dynamic Programming to compute cumulative odds:</p>
+                    <code>
+dp[i] = dp[i-1] × odds[i]
+                    </code>
+                    <p>This ensures accurate calculation of multi-leg parlay combinations.</p>
+                </div>
+
+                <div class="info-box">
+                    <h4>Example Calculation</h4>
+                    <p><strong>Parlay:</strong> 2 Bets × $100</p>
+                    <p><strong>Bet 1:</strong> $100 @ 2.0 odds = $200</p>
+                    <p><strong>Bet 2:</strong> $100 @ 2.5 odds</p>
+                    <p><strong>Result:</strong> $200 × 2.5 = $500</p>
+                    <p><strong>Profit:</strong> $500 - $200 = $300</p>
+                    <p><strong>ROI:</strong> 150%</p>
+                </div>
+
+                <div class="info-box">
+                    <h4>Time Complexity</h4>
+                    <p><strong>Algorithm:</strong> Dynamic Programming</p>
+                    <p><strong>Time:</strong> O(n)</p>
+                    <p><strong>Space:</strong> O(n)</p>
+                    <p>Where n = number of bets in the parlay</p>
+                </div>
+
+                <div class="info-box">
+                    <h4>Parlay Tips</h4>
+                    <ul>
+                        <li>✅ Higher odds multiplier = higher potential returns</li>
+                        <li>✅ All bets must win for parlay to cash</li>
+                        <li>✅ Risk increases with each additional bet</li>
+                        <li>⚠️ Typically 2-5 bets recommended</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .parlay-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-top: 30px;
+    }
+
+    .parlay-builder {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .parlay-bets {
+        max-height: 400px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+    }
+
+    .parlay-bet-item {
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 10px;
+        align-items: flex-end;
+    }
+
+    .form-group {
+        margin-bottom: 0;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 13px;
+    }
+
+    .btn-remove {
+        background: #f55575;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-remove:hover {
+        background: #d63a4a;
+    }
+
+    .parlay-calculation {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .calc-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .calc-item.highlight {
+        border-bottom: none;
+        padding-top: 15px;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    .parlay-info {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .info-box {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .info-box h4 {
+        margin: 0 0 10px 0;
+        color: #333;
+    }
+
+    .info-box p {
+        margin: 8px 0;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .info-box code {
+        background: #f0f0f0;
+        padding: 10px;
+        border-radius: 4px;
+        display: block;
+        font-family: monospace;
+        margin: 10px 0;
+        font-size: 12px;
+    }
+
+    .info-box ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .info-box li {
+        padding: 5px 0;
+        font-size: 13px;
+    }
+
+    @media (max-width: 768px) {
+        .parlay-container {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let betCount = 1;
+
+    function addParlayBet() {
+        betCount++;
+        if (betCount > 5) {
+            showNotification('⚠️ Maximum 5 bets per parlay', 'warning');
+            betCount--;
+            return;
+        }
+
+        const container = document.getElementById('parlayBets');
+        const betItem = document.createElement('div');
+        betItem.className = 'parlay-bet-item';
+        betItem.innerHTML = `
+            <div class="form-group">
+                <label>Bet ${betCount} Amount ($)</label>
+                <input type="number" class="bet-amount" min="1" step="0.01" placeholder="100">
+            </div>
+            <div class="form-group">
+                <label>Bet ${betCount} Odds</label>
+                <input type="number" class="bet-odds" min="1" step="0.01" placeholder="2.0">
+            </div>
+            <button type="button" class="btn-remove" onclick="removeBet(this)">Remove</button>
+        `;
+
+        container.appendChild(betItem);
+        
+        // Add event listeners
+        betItem.querySelector('.bet-amount').addEventListener('input', updateParlyPreview);
+        betItem.querySelector('.bet-odds').addEventListener('input', updateParlyPreview);
+        
+        document.getElementById('numBets').textContent = betCount;
+    }
+
+    function removeBet(button) {
+        if (betCount <= 1) {
+            showNotification('⚠️ Parlay must have at least 1 bet', 'warning');
+            return;
+        }
+
+        button.parentElement.remove();
+        betCount--;
+        document.getElementById('numBets').textContent = betCount;
+        updateParlyPreview();
+    }
+
+    function updateParlyPreview() {
+        const bets = document.querySelectorAll('.parlay-bet-item');
+        let totalInvestment = 0;
+        let odds = 1;
+
+        bets.forEach(bet => {
+            const amount = parseFloat(bet.querySelector('.bet-amount').value) || 0;
+            const betOdds = parseFloat(bet.querySelector('.bet-odds').value) || 1;
+            
+            totalInvestment += amount;
+            odds *= betOdds;
+        });
+
+        const potential = totalInvestment * odds;
+        const profit = potential - totalInvestment;
+        const roi = totalInvestment > 0 ? (profit / totalInvestment) * 100 : 0;
+
+        document.getElementById('totalInvestment').textContent = `$${totalInvestment.toFixed(2)}`;
+        document.getElementById('combinedOdds').textContent = odds.toFixed(2);
+        document.getElementById('potentialWinnings').textContent = `$${potential.toFixed(2)}`;
+        document.getElementById('expectedProfit').textContent = `$${profit.toFixed(2)}`;
+        document.getElementById('roi').textContent = `${roi.toFixed(2)}%`;
+    }
+
+    async function calculateParlay() {
+        const bets = document.querySelectorAll('.parlay-bet-item');
+        const parlayBets = [];
+
+        bets.forEach(bet => {
+            const amount = parseFloat(bet.querySelector('.bet-amount').value) || 0;
+            const odds = parseFloat(bet.querySelector('.bet-odds').value) || 1;
+            
+            if (amount > 0 && odds > 0) {
+                parlayBets.push({ amount, odds });
+            }
+        });
+
+        if (parlayBets.length < 2) {
+            showNotification('⚠️ Please enter at least 2 bets', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/parlay', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ bets: parlayBets })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showNotification('✅ Parlay calculated successfully!', 'success');
+            } else {
+                showNotification(`❌ ${result.message}`, 'error');
+            }
+        } catch (error) {
+            console.error('Error calculating parlay:', error);
+        }
+    }
+
+    // Add event listeners to initial fields
+    document.querySelectorAll('.bet-amount, .bet-odds').forEach(input => {
+        input.addEventListener('input', updateParlyPreview);
+    });
+
+    updateParlyPreview();
+</script>
+{% endblock %}

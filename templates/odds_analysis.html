@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Best Odds Analysis - SportXBetAura{% endblock %}
+
+{% block content %}
+<section class="odds-analysis-section">
+    <div class="container">
+        <h1>📊 Best Odds Analysis</h1>
+        <p class="subtitle">Priority Queue Algorithm finds best value odds</p>
+
+        <div class="analysis-container">
+            <div id="oddsList" class="odds-list">
+                <div class="loading">Analyzing odds...</div>
+            </div>
+        </div>
+
+        <div class="algorithms-info">
+            <div class="algo-card">
+                <h3>🏆 Algorithm: Priority Queue (Min-Heap)</h3>
+                <p><strong>Time Complexity:</strong> O(n log n)</p>
+                <p><strong>Space Complexity:</strong> O(n)</p>
+                <p>Efficiently extracts the best odds from all available events using a binary heap data structure.</p>
+            </div>
+
+            <div class="algo-card">
+                <h3>📈 Implied Probability</h3>
+                <p>Calculated as: <code>Probability = (1 / Odds) × 100</code></p>
+                <p>Lower odds = higher probability of winning</p>
+            </div>
+
+            <div class="algo-card">
+                <h3>💡 Value Finding Strategy</h3>
+                <p>Look for odds that are higher than the implied probability suggests.</p>
+                <p>Example: If odds are 2.0, implied probability is 50%. Higher odds = better value.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .analysis-container {
+        margin: 30px 0;
+    }
+
+    .odds-list {
+        display: grid;
+        gap: 15px;
+    }
+
+    .odds-item {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-left: 5px solid #667eea;
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr auto;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .odds-item:hover {
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    }
+
+    .odds-rank {
+        font-size: 24px;
+        font-weight: bold;
+        color: #667eea;
+    }
+
+    .odds-event {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .odds-sport {
+        font-size: 12px;
+        color: #999;
+        font-weight: 600;
+    }
+
+    .odds-matchup {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .odds-display {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .odds-probability {
+        text-align: center;
+    }
+
+    .probability-value {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .probability-label {
+        font-size: 11px;
+        color: #999;
+    }
+
+    .algo-card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .algo-card h3 {
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .algo-card p {
+        margin: 8px 0;
+        font-size: 14px;
+        color: #666;
+    }
+
+    .algo-card code {
+        background: #f0f0f0;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: monospace;
+    }
+
+    .algorithms-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 40px;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function loadBestOdds() {
+        try {
+            const response = await fetch('/api/best-odds');
+            const odds = await response.json();
+
+            const container = document.getElementById('oddsList');
+
+            if (odds.length === 0) {
+                container.innerHTML = '<p class="no-events">No events available</p>';
+                return;
+            }
+
+            container.innerHTML = odds.map((event, index) => {
+                const probability = (1 / event.best_odds) * 100;
+                
+                return `
+                    <div class="odds-item">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="odds-rank">#${index + 1}</div>
+                            <div class="odds-event">
+                                <div class="odds-sport">${event.sport}</div>
+                                <div class="odds-matchup">${event.team1} vs ${event.team2}</div>
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 12px; color: #999; margin-bottom: 5px;">Date</div>
+                            <div style="font-weight: 600;">${event.date}</div>
+                        </div>
+                        <div class="odds-display">
+                            ${event.best_odds}
+                        </div>
+                        <div class="odds-probability">
+                            <div class="probability-value">${probability.toFixed(1)}%</div>
+                            <div class="probability-label">Implied Prob.</div>
+                        </div>
+                        <a href="/betting?event=${event.id}" class="btn btn-small" style="white-space: nowrap;">
+                            Bet Now
+                        </a>
+                    </div>
+                `;
+            }).join('');
+        } catch (error) {
+            console.error('Error loading odds:', error);
+        }
+    }
+
+    loadBestOdds();
+    setInterval(loadBestOdds, 5000);
+</script>
+{% endblock %}
